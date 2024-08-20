@@ -16,8 +16,8 @@ minimal: false             # use a dark header
 # Menu
 
 navigation:                # accepts {file, title, url, icon, sidebaricon}
-  - {file: "Tinghua Chen's CV", title:"CV"}
-  - {title:"Blog",file = "blog.md"}
+  - {file: "Tinghua_CV.pdf", title:"CV",icon =home}
+  - {title:"Blog",url = "https://tinghua-chen.github.io"}
 
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
   - {title: Mail, icon: envelope, url: "tuc579@psu.edu"}
