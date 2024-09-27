@@ -519,7 +519,7 @@ disruption_plot <- ggplot(data = dis_allcoord, aes(x = time, y = mean)) +
                       labs(x= "Hour")
 
 ```
-![alt text](../../../images/Disruption.png)
+![alt text](../images/Disruption.png)
 
 
 Boom!💥💥💥
