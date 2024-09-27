@@ -7,7 +7,7 @@ MultiAddGPs are designed for modeling a mix of linear and non-linear factors in 
 
 The dataset contains over 500 samples collected from 4 idependent artificial gut vessels, taken at irregular time intervals. What makes this dataset interesting is that Vessels 1 and 2 experienced starvation around days 11 and 13, while Vessels 3 and 4 were left untouched as controls. Here's a visual to give you a sense of what the data looks like:
     
-![alt text](../../images/Artificial%20_gut_data_diagram.jpg)
+![alt text](../images/Artificial%20_gut_data_diagram.jpg)
 
 ## What We’ll Cover
 In this post, I’ll walk you through three key aspects of the analysis:
@@ -297,7 +297,7 @@ $$
 
 We chose $\alpha_1 = 10$, $\beta_1 = 20$, and $\alpha_2 = 10$, $\beta_2 = 10$ for $\mathbf{\Gamma}^{(\text{base})}$. For $\mathbfcode/tinghua-chen.github.io/_posts/2199-01-01-future-post.md{\Gamma}^{(\text{disrupt})}$, we used $\alpha_1 = 10$, $\beta_1 = 10$, and $\alpha_2 = 10$, $\beta_2 = 20$. 
 
-![alt text](../../images/prior_density.png)
+![alt text](../images/prior_density.png)
 
 
 Note we fixed the $a$ parameter in the rational quadratic kernel at 2. This parameter controls how much weight is given to large-scale vs. small-scale variations. By doing these specification, we’re essentially saying we don't expect the model to learn extreme length scales—whether very small or very large—since these wouldn’t make sense given the time intervals in the data. So, the prior helps to keep the model in check, preventing it from overfitting to unusual patterns.
@@ -442,7 +442,7 @@ p <- ggplot(predicted_clr_tidy,aes(x=Hour,y=mean))+
       annotate("rect", xmin = 240, xmax = 264, ymin = -Inf, ymax = Inf, fill = "#717D7E", alpha = 0.15) 
 ```
 
-![alt text](../../images/AllVessels.png)
+![alt text](../images/AllVessels.png)
 
 As you can see, the plot describe clear disruption effect around Day 11-13 (gray area). Yah!
 
