@@ -136,7 +136,7 @@ $$
 \mathbf{f}^{(\text{disrupt}, v)} \sim \text{GP}(\mathbf{\Theta}^{(\text{disrupt}, v)}, \mathbf{\Sigma}, \mathbf{\Gamma}^{(v)} \odot \mathbf{\Gamma}^{(\text{disrupt})}), \quad v \in \{1,2\}
 $$
 
-and $\odot$ represent the Kronecker product. 
+and $$\odot$$ represent the Kronecker product. 
 
 
 ```r
@@ -221,7 +221,7 @@ $$
 \end{bmatrix}
 $$
 
-Each of $\mathbf{\Gamma}^{(v=i,\text{base})}$ is a $V_i$ dimension of covariance matrix ($V_i$ is the dimension of $i$ vessel). That means, the dimension of $\mathbf{\Gamma}^{(v)} \odot \mathbf{\Gamma}^{(\text{base})}$ must be a $N \times N$ matrix, where $N = V_1+V_2+V_3+V_4$. 
+Each of $$\mathbf{\Gamma}^{(v=i,\text{base})}$$ is a $V_i$ dimension of covariance matrix ($$V_i$$ is the dimension of $i$ vessel). That means, the dimension of $$\mathbf{\Gamma}^{(v)} \odot \mathbf{\Gamma}^{(\text{base})}$$ must be a $$N \times N$$ matrix, where $$N = V_1+V_2+V_3+V_4$$. 
 
 
 For vessels experiencing disruption, we apply a similar approach, but limit it to Vessels 1 and 2:
@@ -236,9 +236,9 @@ $$
 \end{align*}
 $$
 
-These matrices serve as the covariance structures for the vessel-specific long-term trends $ \mathbf{f}^{(\text{base}, v)} $ and disruption effects $ \mathbf{f}^{(\text{disrupt}, v)} $. Since the vessels are physically isolated from each other, covariances between different vessels are set to zero (e.g., $ \text{cov}(\mathbf{\Gamma}^{(v=1,\text{base})}, \mathbf{\Gamma}^{(v=2,\text{base})}) = 0 $).
+These matrices serve as the covariance structures for the vessel-specific long-term trends $$ \mathbf{f}^{(\text{base}, v)}$$ and disruption effects $$\mathbf{f}^{(\text{disrupt}, v)}$$. Since the vessels are physically isolated from each other, covariances between different vessels are set to zero (e.g., $$\text{cov}(\mathbf{\Gamma}^{(v=1,\text{base})}, \mathbf{\Gamma}^{(v=2,\text{base})}) = 0$$).
 
-All mean functions are set to zero, such that $ \mathbf{\Theta}^{(\text{base},v)} = 0 $. We use a squared exponential kernel to model the long-term nonlinear trends in $ \mathbf{\Gamma}^{(\text{base})} $:
+All mean functions are set to zero, such that $$\mathbf{\Theta}^{(\text{base},v)} = 0$$. We use a squared exponential kernel to model the long-term nonlinear trends in $$\mathbf{\Gamma}^{(\text{base})} $$:
 
 $$
 \mathbf{\Gamma}^{(\text{base})} = \sigma_{\text{base}}^2 \exp\left(- \frac{(t - t')^2}{2 \rho_{\text{base}}^2} \right)
@@ -250,7 +250,7 @@ $$
 \mathbf{\Gamma}^{(\text{disrupt})} = \sigma_{\text{disrupt}}^2 \left( 1 + \frac{(t - t')^2}{2a \rho_{\text{disrupt}}^2} \right)^{-a} \mathbf{I}(t \geq 11 \, \& \, t' \geq 11)
 $$
 
-Here, $ \mathbf{I}(t \geq 11 \, \& \, t' \geq 11) $ is also a block identity matrix but reflects the fact that disruption occurs only after day 11, and its effects persist through the rest of the study.
+Here, $$\mathbf{I}(t \geq 11 \, \& \, t' \geq 11)$$ is also a block identity matrix but reflects the fact that disruption occurs only after day 11, and its effects persist through the rest of the study.
 
 To implement this in R, you need to create dummy variables in your design matrix corresponding to the specific vessels (e.g., where 1 represents the vessel in question and 0 represents all others). You can then build block matrix kernels for each vessel. Here's an example of how to create such a function for the kernel:
 
@@ -282,9 +282,9 @@ SE <- function(X, sigma = 1, rho = median(as.matrix(dist(t(X)))),
 
 ## Hyperparameter Tuning in Our Model: Finding the Sweet Spot
 
-Hyperparameter selection is always a critical part of modeling, whether you're dealing with linear or non-linear functions (like choosing the right kernel parameters). But with our model, we can push the flexibility even further. Hyperparameter optimization isn’t limited to just the kernel function—it can also extend to the mean function or even log-ratio transformations, like  $f(\Eta; \Omega)$. 
+Hyperparameter selection is always a critical part of modeling, whether you're dealing with linear or non-linear functions (like choosing the right kernel parameters). But with our model, we can push the flexibility even further. Hyperparameter optimization isn’t limited to just the kernel function—it can also extend to the mean function or even log-ratio transformations, like  $$f(\Eta; \Omega)$$. 
 
-In our case, we’re optimizing four hyperparameters ($\sigma_{\text{base}}, \sigma_{\text{disrupt}}, \rho_{\text{base}}, \rho_{\text{disrupt}}$), and we’re doing this using Penalized Maximum Marginal Likelihood (MML). I would prefer using Penalized MML when it's difficult to identify a clear range for the hyperparameters. The choice of penalization is up for the user.
+In our case, we’re optimizing four hyperparameters ($$\sigma_{\text{base}}, \sigma_{\text{disrupt}}, \rho_{\text{base}}, \rho_{\text{disrupt}}$$), and we’re doing this using Penalized Maximum Marginal Likelihood (MML). I would prefer using Penalized MML when it's difficult to identify a clear range for the hyperparameters. The choice of penalization is up for the user.
 
 Here’s how we set it up:
 
@@ -295,14 +295,14 @@ $$
 \end{align*}
 $$
 
-We chose $\alpha_1 = 10$, $\beta_1 = 20$, and $\alpha_2 = 10$, $\beta_2 = 10$ for $\mathbf{\Gamma}^{(\text{base})}$. For $\mathbfcode/tinghua-chen.github.io/_posts/2199-01-01-future-post.md{\Gamma}^{(\text{disrupt})}$, we used $\alpha_1 = 10$, $\beta_1 = 10$, and $\alpha_2 = 10$, $\beta_2 = 20$. 
+We chose $$\alpha_1 = 10$$, $$\beta_1 = 20$$, and $$\alpha_2 = 10$$, $$\beta_2 = 10$$ for $$\mathbf{\Gamma}^{(\text{base})}$$. For $$\mathbf{\Gamma}^{(\text{disrupt})}$$, we used $$\alpha_1 = 10$$, $$\beta_1 = 10$$, and $$\alpha_2 = 10$$, $$\beta_2 = 20$$. 
 
 ![alt text](../images/prior_density.png)
 
 
 Note we fixed the $a$ parameter in the rational quadratic kernel at 2. This parameter controls how much weight is given to large-scale vs. small-scale variations. By doing these specification, we’re essentially saying we don't expect the model to learn extreme length scales—whether very small or very large—since these wouldn’t make sense given the time intervals in the data. So, the prior helps to keep the model in check, preventing it from overfitting to unusual patterns.
 
-To further refine the model, we also added a constraint: $\sigma_{\text{base}} < \sigma_{\text{disrupt}}$. This reflects our assumption that more variation comes from the starvation effects, based on previous study Silverman et al. (2018). Similarly, we set $\rho_{\text{base}} > \rho_{\text{disrupt}}$ to account for smoother trends in the base kernel, since starvation should lead to more abrupt changes. Note that we did not center the posterior samples at a mean of 0, as no intercept was included in the model.
+To further refine the model, we also added a constraint: $$\sigma_{\text{base}} < \sigma_{\text{disrupt}}$$. This reflects our assumption that more variation comes from the starvation effects, based on previous study Silverman et al. (2018). Similarly, we set $$\rho_{\text{base}} > \rho_{\text{disrupt}}$$ to account for smoother trends in the base kernel, since starvation should lead to more abrupt changes. Note that we did not center the posterior samples at a mean of 0, as no intercept was included in the model.
 
 
 ```r
