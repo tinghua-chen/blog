@@ -3,26 +3,32 @@ title: "Reanalyzing the Artificial Gut Dataset using MultiAddGPs"
 layout: post
 ---
 
-MultiAddGPs are designed for modeling a mix of linear and non-linear factors in compositional count data. In this post, I'll walk you through a reanalysis of the mallard dataset from Silverman et al. (2018) to show how you can apply MultiAddGP modeling in a real-world microbiome study.
+**MultiAddGPs** are designed for modeling a mix of linear and non-linear factors in compositional count data. In this post, I'll walk you through a reanalysis of the artificial gut dataset from Silverman et al. (2018) to show how you can apply MultiAddGP modeling in a real-world microbiome study.
 
 The dataset contains over 500 samples collected from 4 idependent artificial gut vessels, taken at irregular time intervals. What makes this dataset interesting is that Vessels 1 and 2 experienced starvation around days 11 and 13, while Vessels 3 and 4 were left untouched as controls. Here's a visual to give you a sense of what the data looks like:
     
 ![alt text](../images/Artificial%20_gut_data_diagram.jpg)
 
 ## What We’ll Cover
-In this post, I’ll walk you through three key aspects of the analysis:
+In this post, I’ll mainly cover three key aspects of the analysis:
 
 + How to use MultiAddGPs (via the *basset* tool in the fido package) to model additive Gaussian Processes and how to isolate the effects of food disruption.
-+ How to model four independent vessels or how to model four concurrent time sereis simultaneously using block identity matrices.
++ How to model four independent vessels (or how to model four concurrent time sereis) simultaneously using block identity matrices.
 + How to select the model’s hyperparameters using Penalized Maximum Marginal Likelihood (MML).
 
 ## Before You Begin: Recommended Reading
-If you’re new to MultiAddGPs or *basset*, I recommend first going through the *basset* vignette, which introduces the basic concepts. It’s a great starting point for understanding how MultiAddGPs work, and you can check it out [here](https://jsilve24.github.io/fido/articles/non-linear-models.html).
+If you’re new to MultiAddGPs or *basset*, I recommend first going through the *basset* vignette, which introduces the basic concepts. That is a great starting point for understanding how MultiAddGPs work, and you can check it out [here](https://jsilve24.github.io/fido/articles/non-linear-models.html).
 
-OK, Let's get started!
+OK Ok, Let's get started!
 
 ## Data preprocessing
-To start, the data preprocessing steps mostly follow the analysis by Silverman et al. (2018). Below is the code I used to prepare the data and set up the design matrix for the model:
+To start, the data preprocessing steps mostly follow the analysis by [Silverman et al. (2018)](https://link.springer.com/article/10.1186/s40168-018-0584-3). I won’t delve into the details here, but I’ve included the code below for anyone who wants to replicate the process. The output consists of a $$D \times N$$ matrix for $$Y$$ and a $$C \times N$$ matrix for $$X$$, where:
+
+- $$D$$ represents the number of taxa or categories,
+- $$N$$ represents the number of observations, and
+- $$C$$ represents the number of covariates.
+
+
 ```r   
 library(fido)
 library(dplyr)
@@ -65,30 +71,11 @@ mallard_family$otu_table <- mallard_family$otu_table[mallard_family$sample_data$
 X1 <- mallard_family$sample_data %>%
             dplyr::select(X.SampleID,Vessel,Vessel1,Vessel2,Vessel3,Vessel4,Vessel1Burn,Vessel2Burn,Hour_diff,Hour)
 
-Hour <- X1$Hour
-Hour_diff <- X1$Hour_diff
-Vessel <- paste0("Vessel ",X1$Vessel)
-Vessel1 <- X1$Vessel1
-Vessel2 <- X1$Vessel2
-Vessel3 <- X1$Vessel3
-Vessel4 <- X1$Vessel4
-Vessel1Spike <- X1$Vessel1Spike
-Vessel2Spike <- X1$Vessel2Spike
-Veseel1Burn <- X1$Vessel1Burn
-Vessel2Burn <- X1$Vessel2Burn
-    
-# Transpose to get the right dimensions 
 X<- t(model.matrix(~ Vessel1+Vessel2+Vessel3+Vessel4+Veseel1Burn+Vessel2Burn+Hour_diff,data = X1)) 
 
 #  Extract Data / dimensions from Phyloseq object
 Y <- t(as(mallard_family$otu_table, "matrix"))
 rownames(Y) <- mallard_family$tax_table$Family
-
-if (identical(colnames(Y), X1$X.SampleID)) {
-    colnames(Y) <- colnames(X)
-} else {
-    warning("The order of the samples in the otu_table and sample_data are not the same")
-}
 
 D <- nrow(Y)
 N <- nrow(mallard_family$sample_data)
@@ -103,7 +90,7 @@ Since our goal here is to isolate the impact of feed disruption, we approached t
 - A disruption effect due to starvation ($$f^{(\text{disrupt}, v)}$$) for Vessels 1 and 2. 
 
 
-Here's a glimpse of the math behind it:
+Here's a glimpse of the model behind it:
 
 $$
 \mathbf{Y}_{\cdot n} \sim \text{Multinomial}(\mathbf{\Pi}_{\cdot n})
@@ -197,11 +184,10 @@ Model <- function(
     ...
 -   Theta <- list(Theta_kernel,Theta_kernel,Theta_kernel,Theta_kernel,Theta_kernel,Theta_kernel)
 -   Gamma <- list(Gamma_vessel1, Gamma_vessel2,Gamma_vessel3,Gamma_vessel4,Gamma_vessel1Spike,Gamma_vessel2Spike)
-
 -   mod <- fido::basset(Y, X, upsilon, Theta, Gamma, Xi, verbose = TRUE, seed = 893)
+
 +   Theta <- list(linear_component_theta,Theta_kernel,Theta_kernel,Theta_kernel,Theta_kernel,Theta_kernel,Theta_kernel)
 +   Gamma <- list(linear_component_gamma,Gamma_vessel1, Gamma_vessel2,Gamma_vessel3,Gamma_vessel4,Gamma_vessel1Spike,Gamma_vessel2Spike)
-
 +   mod <- fido::basset(Y, X, upsilon, linear= c(1), Theta, Gamma, Xi, verbose = TRUE, seed = 893)
 
 }
@@ -221,7 +207,7 @@ $$
 \end{bmatrix}
 $$
 
-Each of $$\mathbf{\Gamma}^{(v=i,\text{base})}$$ is a $V_i$ dimension of covariance matrix ($$V_i$$ is the dimension of $i$ vessel). That means, the dimension of $$\mathbf{\Gamma}^{(v)} \odot \mathbf{\Gamma}^{(\text{base})}$$ must be a $$N \times N$$ matrix, where $$N = V_1+V_2+V_3+V_4$$. 
+Each of $$\mathbf{\Gamma}^{(v=i,\text{base})}$$ is a $$V_i$$ dimension of covariance matrix ($$V_i$$ is the dimension of $$i$$ vessel). That means, the dimension of $$\mathbf{\Gamma}^{(v)} \odot \mathbf{\Gamma}^{(\text{base})}$$ must be a $$N \times N$$ matrix, where $$N = V_1+V_2+V_3+V_4$$. 
 
 
 For vessels experiencing disruption, we apply a similar approach, but limit it to Vessels 1 and 2:
@@ -300,7 +286,7 @@ We chose $$\alpha_1 = 10$$, $$\beta_1 = 20$$, and $$\alpha_2 = 10$$, $$\beta_2 =
 ![alt text](../images/prior_density.png)
 
 
-Note we fixed the $a$ parameter in the rational quadratic kernel at 2. This parameter controls how much weight is given to large-scale vs. small-scale variations. By doing these specification, we’re essentially saying we don't expect the model to learn extreme length scales—whether very small or very large—since these wouldn’t make sense given the time intervals in the data. So, the prior helps to keep the model in check, preventing it from overfitting to unusual patterns.
+Note we fixed the $$a$$ parameter in the rational quadratic kernel at 2. This parameter controls how much weight is given to large-scale vs. small-scale variations. By doing these specification, we’re essentially saying we don't expect the model to learn extreme length scales—whether very small or very large—since these wouldn’t make sense given the time intervals in the data. So, the prior helps to keep the model in check, preventing it from overfitting to unusual patterns.
 
 To further refine the model, we also added a constraint: $$\sigma_{\text{base}} < \sigma_{\text{disrupt}}$$. This reflects our assumption that more variation comes from the starvation effects, based on previous study Silverman et al. (2018). Similarly, we set $$\rho_{\text{base}} > \rho_{\text{disrupt}}$$ to account for smoother trends in the base kernel, since starvation should lead to more abrupt changes. Note that we did not center the posterior samples at a mean of 0, as no intercept was included in the model.
 
