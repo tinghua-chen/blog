@@ -17,13 +17,13 @@ mathjax: true
 # Menu
 
 navigation:                # accepts {file, title, url, icon, sidebaricon}
-  - {file: "Tinghua_CV.pdf", title:"CV",icon =home}
+  # - {file: "Tinghua_CV.pdf", title:"CV",icon =home}
   - {title:"Blog",url = "https://tinghua-chen.github.io/blog/"}
 
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
   - {title: Mail, icon: envelope, url: "tuc579@psu.edu"}
   - {title: Github, icon: github, url: "https://tinghua-chen.github.io"}
-  - {title: Tiwtter, icon: rss, url: "/feed.xml"}
+  # - {title: Tiwtter, icon: rss, url: "/feed.xml"}
 
 comments:
 #  disqus_shortname: ""    # see https://disqus.com/
